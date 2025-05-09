@@ -2,11 +2,11 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, User } from "lucide-react";
 import Image from "next/image";
 
+// Массив историй
 const stories = [
   "/story1.jpg",
   "/story2.jpg",
@@ -16,8 +16,8 @@ const stories = [
 ];
 
 export default function FlipApp() {
-  const [step, setStep] = useState(0);
-  const [page, setPage] = useState("story");
+  const [step, setStep] = useState<number>(0);  // типизация для step
+  const [page, setPage] = useState<'story' | 'map'>('story');  // типизация для page
 
   const nextStory = () => {
     if (step < stories.length - 1) {
@@ -38,7 +38,9 @@ export default function FlipApp() {
           className="rounded-2xl border-4 border-white shadow-xl"
         />
         {step === stories.length - 1 && (
-          <Button className="mt-4 bg-[#fed619] text-[#012044]" onClick={() => setPage("map")}>Перейти к карте</Button>
+          <Button className="mt-4 bg-[#fed619] text-[#012044]" onClick={() => setPage("map")}>
+            Перейти к карте
+          </Button>
         )}
       </div>
     );
@@ -47,7 +49,6 @@ export default function FlipApp() {
   if (page === "map") {
     return (
       <div className="relative w-full h-screen">
-        {/* Карта (в будущем сюда интегрируется кастомная карта) */}
         <div className="absolute top-2 left-2 z-10">
           <Button className="bg-[#fed619] text-[#012044]">
             <MapPin className="mr-2" /> Карта заведений
