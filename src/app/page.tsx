@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, User } from "lucide-react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import "leaflet/dist/leaflet.css";
 
+// Динамический импорт компонента карты (без SSR)
+const MapComponent = dynamic(() => import('@/components/ui/MapComponent'), {
+  ssr: false,
+  loading: () => <div className="h-full bg-gray-100 flex items-center justify-center">Загрузка карты...</div>
+});
+
+// Массив путей к изображениям историй
 const stories = [
   "/story1.jpg",
   "/story2.jpg",
@@ -15,6 +21,7 @@ const stories = [
   "/story5.jpg"
 ];
 
+// Тип данных о заведении
 type PlaceInfo = {
   name: string;
   hours: string;
@@ -23,28 +30,27 @@ type PlaceInfo = {
   price: number;
 };
 
-const VID_COFFEE_COORDS = [59.964480, 30.296195];
-const INITIAL_MAP_CENTER = [59.96, 30.30];
-
 export default function FlipApp() {
-  const [showSplash, setShowSplash] = useState(true); // <-- правильно внутри компонента
-  const [step, setStep] = useState<number>(0);
+  // Состояние для отображения splash-экрана
+  const [showSplash, setShowSplash] = useState(true);
+  // Текущий шаг в историях
+  const [step, setStep] = useState(0);
+  // Текущая страница (истории/карта)
   const [page, setPage] = useState<'story' | 'map'>('story');
-  const [hasViewedStories, setHasViewedStories] = useState<boolean>(false);
-  const mapRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  // Флаг просмотра историй
+  const [hasViewedStories, setHasViewedStories] = useState(false);
+  // Данные выбранного заведения
   const [selectedPlace, setSelectedPlace] = useState<PlaceInfo | null>(null);
-  const [leafletLoaded, setLeafletLoaded] = useState(false);
-  const LRef = useRef<any>(null);
 
+  // Эффект для скрытия splash-экрана через 2 секунды
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 2000);
-
     return () => clearTimeout(timer);
   }, []);
 
+  // Проверка localStorage при загрузке
   useEffect(() => {
     const viewed = localStorage.getItem('hasViewedStories');
     if (viewed === 'true') {
@@ -53,57 +59,7 @@ export default function FlipApp() {
     }
   }, []);
 
-  useEffect(() => {
-    if (page === 'map' && typeof window !== 'undefined' && !leafletLoaded) {
-      (async () => {
-        const L = await import("leaflet");
-        LRef.current = L;
-        setLeafletLoaded(true);
-      })();
-    }
-  }, [page, leafletLoaded]);
-
-  useEffect(() => {
-    if (page === 'map' && leafletLoaded && !mapRef.current) {
-      const L = LRef.current;
-      mapRef.current = L.map('map').setView(INITIAL_MAP_CENTER, 15);
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors & CartoDB'
-      }).addTo(mapRef.current);
-
-      const redIcon = L.icon({
-        iconUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff0000"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32],
-        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-        shadowSize: [41, 41],
-        shadowAnchor: [12, 41]
-      });
-
-      markerRef.current = L.marker(VID_COFFEE_COORDS, {
-        icon: redIcon,
-        title: "Vid Coffee"
-      })
-      .addTo(mapRef.current)
-      .on('click', () => {
-        setSelectedPlace({
-          name: "Vid Coffee",
-          hours: "Ежедневно с 08:00 до 20:00",
-          offer: "Миндальное печенье",
-          quantity: 3,
-          price: 120,
-        });
-      });
-
-      return () => {
-        mapRef.current?.remove();
-        mapRef.current = null;
-      };
-    }
-  }, [page, leafletLoaded]);
-
+  // Обработчик перехода к следующей истории
   const nextStory = () => {
     if (step < stories.length - 1) {
       setStep(step + 1);
@@ -114,10 +70,17 @@ export default function FlipApp() {
     }
   };
 
+  // Закрытие карточки заведения
   const closeCard = () => {
     setSelectedPlace(null);
   };
 
+  // Обработчик выбора заведения (передаётся в MapComponent)
+  const handlePlaceSelect = (place: PlaceInfo) => {
+    setSelectedPlace(place);
+  };
+
+  // Отображение splash-экрана
   if (showSplash) {
     return (
       <div className="flex items-center justify-center h-screen bg-[#012044]">
@@ -133,6 +96,7 @@ export default function FlipApp() {
     );
   }
 
+  // Отображение историй
   if (!hasViewedStories && page === "story") {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-[#012044] text-white" onClick={nextStory}>
@@ -156,21 +120,27 @@ export default function FlipApp() {
     );
   }
 
+  // Основной интерфейс с картой
   return (
     <div className="relative w-full h-screen">
+      {/* Кнопка "Карта заведений" */}
       <div className="absolute top-2 left-2 z-[1000]">
         <Button className="bg-[#fed619] text-[#012044]">
           <MapPin className="mr-2" /> Карта заведений
         </Button>
       </div>
+
+      {/* Кнопка профиля */}
       <div className="absolute top-2 right-2 z-[1000]">
         <Button className="bg-[#012044] text-white">
           <User className="mr-2" /> Профиль
         </Button>
       </div>
 
-      <div id="map" className="w-full h-full z-0"></div>
+      {/* Компонент карты с передачей обработчика выбора */}
+      <MapComponent onPlaceSelect={handlePlaceSelect} />
 
+      {/* Карточка выбранного заведения */}
       {selectedPlace && (
         <div className="absolute bottom-0 w-full bg-white text-[#012044] p-4 rounded-t-2xl shadow-xl z-[1000]">
           <div className="flex justify-between items-center mb-2">

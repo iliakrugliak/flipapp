@@ -1,22 +1,35 @@
-// components/MapComponent.tsx
 "use client";
 
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-export default function MapComponent() {
+const VID_COFFEE_COORDS: [number, number] = [59.964480, 30.296195];
+const INITIAL_MAP_CENTER: [number, number] = [59.96, 30.30];
+
+const PLACE_INFO = {
+  name: "Vid Coffee",
+  hours: "Ежедневно с 08:00 до 20:00",
+  offer: "Миндальное печенье",
+  quantity: 3,
+  price: 120,
+};
+
+interface MapComponentProps {
+  onPlaceSelect: (place: typeof PLACE_INFO) => void;
+}
+
+export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
-    // Инициализация карты только на клиенте
-    if (typeof window !== "undefined" && !mapRef.current) {
-      mapRef.current = L.map("map").setView([59.96, 30.30], 15);
-      
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    if (!mapRef.current) {
+      const map = L.map('map').setView(INITIAL_MAP_CENTER, 13);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap contributors & CartoDB'
-      }).addTo(mapRef.current);
+      }).addTo(map);
 
       const redIcon = L.icon({
         iconUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff0000"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
@@ -28,17 +41,32 @@ export default function MapComponent() {
         shadowAnchor: [12, 41]
       });
 
-      markerRef.current = L.marker([59.964480, 30.296195], {
+      markerRef.current = L.marker(VID_COFFEE_COORDS, {
         icon: redIcon,
-        title: "Vid Coffee"
-      }).addTo(mapRef.current);
+        interactive: true,
+        keyboard: false,
+      }).addTo(map);
+
+      // Обработчик клика по маркеру
+      markerRef.current.on('click', (e) => {
+        e.originalEvent.preventDefault();
+        e.originalEvent.stopPropagation();
+        e.originalEvent.stopImmediatePropagation();
+
+        // Не трогаем карту, просто вызываем колбэк
+        onPlaceSelect(PLACE_INFO);
+      });
+
+      mapRef.current = map;
     }
 
     return () => {
-      mapRef.current?.remove();
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
-  }, []);
+  }, [onPlaceSelect]);
 
- // В MapComponent.tsx
-return <div id="map" className="w-full h-full min-h-[400px]" />;
+  return <div id="map" className="w-full h-full" />;
 }
