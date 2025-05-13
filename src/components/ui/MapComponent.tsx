@@ -22,10 +22,11 @@ interface MapComponentProps {
 export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!mapRef.current) {
-      const map = L.map('map').setView(INITIAL_MAP_CENTER, 13);
+    if (!mapRef.current && mapContainerRef.current) {
+      const map = L.map(mapContainerRef.current).setView(INITIAL_MAP_CENTER, 13);
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap contributors & CartoDB'
@@ -41,23 +42,18 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
         shadowAnchor: [12, 41]
       });
 
-      markerRef.current = L.marker(VID_COFFEE_COORDS, {
+      const marker = L.marker(VID_COFFEE_COORDS, {
         icon: redIcon,
-        interactive: true,
-        keyboard: false,
+        title: "Vid Coffee",
+        interactive: true
       }).addTo(map);
 
-      // Обработчик клика по маркеру
-      markerRef.current.on('click', (e) => {
-        e.originalEvent.preventDefault();
-        e.originalEvent.stopPropagation();
-        e.originalEvent.stopImmediatePropagation();
-
-        // Не трогаем карту, просто вызываем колбэк
+      marker.on('click', () => {
         onPlaceSelect(PLACE_INFO);
       });
 
       mapRef.current = map;
+      markerRef.current = marker;
     }
 
     return () => {
@@ -66,7 +62,7 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
         mapRef.current = null;
       }
     };
-  }, [onPlaceSelect]);
+  }, []); // Пустой массив — useEffect выполнится один раз при монтировании
 
-  return <div id="map" className="w-full h-full" />;
+  return <div ref={mapContainerRef} className="w-full h-full" />;
 }
