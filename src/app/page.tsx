@@ -42,11 +42,11 @@ export default function FlipApp() {
   // Данные выбранного заведения
   const [selectedPlace, setSelectedPlace] = useState<PlaceInfo | null>(null);
 
-  // Эффект для скрытия splash-экрана через 2 секунды
+  // Эффект для скрытия splash-экрана через 3 секунды
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 2000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -81,20 +81,20 @@ export default function FlipApp() {
   };
 
   // Отображение splash-экрана
-  if (showSplash) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#012044]">
-        <Image
-          src="/splash.jpg"
-          alt="Splash Screen"
-          width={300}
-          height={300}
-          className="rounded-xl"
-          priority
-        />
-      </div>
-    );
-  }
+if (showSplash) {
+  return (
+    <div className="flex items-center justify-center h-screen bg-[#012044]">
+      <Image
+        src="/splash.jpg"
+        alt="Splash Screen"
+        layout="fill" // Это ключевое изменение
+        objectFit="cover" // Это обеспечит покрытие всего пространства
+        className="rounded-xl"
+        priority
+      />
+    </div>
+  );
+}
 
   // Отображение историй
   if (!hasViewedStories && page === "story") {
@@ -103,9 +103,9 @@ export default function FlipApp() {
         <Image
           src={stories[step]}
           alt={`Story ${step + 1}`}
-          width={320}
-          height={560}
-          className="rounded-2xl border-4 border-white shadow-xl"
+          layout="fill" // Это ключевое изменение
+          objectFit="cover" // Это обеспечит покрытие всего пространства
+          className="rounded-xl"
           priority
         />
         {step === stories.length - 1 && (
@@ -123,10 +123,10 @@ export default function FlipApp() {
   // Основной интерфейс с картой
   return (
     <div className="relative w-full h-screen">
-      {/* Кнопка "Карта заведений" */}
+      {/* Кнопка "Показать списком" */}
       <div className="absolute top-2 left-2 z-[1000]">
         <Button className="bg-[#fed619] text-[#012044]">
-          <MapPin className="mr-2" /> Карта заведений
+          <MapPin className="mr-2" /> Показать списком
         </Button>
       </div>
 

@@ -121,6 +121,13 @@
   }
 }
 
-.leaflet-marker-icon, .leaflet-marker-shadow {
+/* Leaflet: убрать маркерные глюки */
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
   display: block !important;
+}
+
+/* Безопасное скрытие zoom-контролов Leaflet */
+.leaflet-control-zoom {
+  display: none !important;
 }
