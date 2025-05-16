@@ -36,7 +36,6 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
         maxZoom: 19,
       }).addTo(map);
 
-      // Создаем элемент метки с подписью
       const markerWithLabel = L.divIcon({
         className: 'marker-with-label',
         html: `
@@ -60,17 +59,17 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
             </span>
           </div>
         `,
-        iconSize: [120, 24], // Ширина с учетом подписи
-        iconAnchor: [12, 12] // Центр круга
+        iconSize: [120, 24],
+        iconAnchor: [12, 12]
       });
 
-      // Создаем маркер с подписью
       const marker = L.marker(VID_COFFEE_COORDS, {
         icon: markerWithLabel,
         interactive: true,
       }).addTo(map);
 
-      marker.on("click", () => {
+      marker.on("click", (e) => {
+        e.originalEvent.stopPropagation();
         onPlaceSelect(PLACE_INFO);
       });
 
@@ -83,6 +82,7 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
         mapRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <div ref={mapContainerRef} className="w-full h-full bg-[#d6e7ff]" />;

@@ -1,9 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+
+// Объявляем тип для Telegram WebApp
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        initDataUnsafe: {
+          user?: {
+            id: number;
+            first_name: string;
+            last_name?: string;
+            username?: string;
+            photo_url?: string;
+            is_premium?: boolean;
+            language_code?: string;
+          };
+        };
+        expand: () => void;
+        enableClosingConfirmation: () => void;
+        close: () => void;
+      };
+    };
+  }
+}
 
 // Динамический импорт компонента карты (без SSR)
 const MapComponent = dynamic(() => import('@/components/ui/MapComponent'), {
