@@ -24,6 +24,8 @@ declare global {
         expand: () => void;
         enableClosingConfirmation: () => void;
         close: () => void;
+        isExpanded: boolean;
+        ready: () => void;
       };
     };
   }
@@ -77,19 +79,25 @@ export default function FlipApp() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceInfo | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   // Данные пользователя Telegram
-  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
+  const [telegramUser, setTelegramUser] = useState<any>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   // Состояние загрузки
   const [isLoading, setIsLoading] = useState(true);
 
   // Эффект для инициализации Telegram WebApp
   useEffect(() => {
     // Проверяем, что мы в Telegram WebApp
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
       
-      // Инициализируем WebApp
-      tg.expand(); // Раскрываем на весь экран
-      tg.enableClosingConfirmation(); // Включаем подтверждение закрытия
+      // 1. Инициализируем WebApp
+      tg.ready(); // Сообщаем Telegram, что приложение готово
+      
+      // 2. Раскрываем на весь экран (если еще не раскрыто)
+      if (!tg.isExpanded) {
+        tg.expand();
+        setIsExpanded(true);
+      }
       
       // Получаем данные пользователя
       const user = tg.initDataUnsafe?.user;
