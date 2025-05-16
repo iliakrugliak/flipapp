@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { MapPin, User } from "lucide-react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 
