@@ -55,17 +55,6 @@ type PlaceInfo = {
   price: number;
 };
 
-// Тип данных пользователя Telegram
-type TelegramUser = {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  is_premium?: boolean;
-  language_code?: string;
-};
-
 export default function FlipApp() {
   // Состояние для отображения splash-экрана
   const [showSplash, setShowSplash] = useState(true);
@@ -79,8 +68,15 @@ export default function FlipApp() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceInfo | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   // Данные пользователя Telegram
-  const [telegramUser, setTelegramUser] = useState<any>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [telegramUser, setTelegramUser] = useState<{
+    id: number;
+    first_name: string;
+    last_name?: string;
+    username?: string;
+    photo_url?: string;
+    is_premium?: boolean;
+    language_code?: string;
+  } | null>(null);
   // Состояние загрузки
   const [isLoading, setIsLoading] = useState(true);
 
@@ -96,7 +92,6 @@ export default function FlipApp() {
       // 2. Раскрываем на весь экран (если еще не раскрыто)
       if (!tg.isExpanded) {
         tg.expand();
-        setIsExpanded(true);
       }
       
       // Получаем данные пользователя
