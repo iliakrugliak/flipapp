@@ -54,7 +54,7 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
               color: #356ac9;
               font-family: -apple-system, BlinkMacSystemFont, sans-serif;
               font-size: 13px;
-              font-weight: 500;
+              font-weight: 700;
             ">
               ${PLACE_INFO.name}
             </span>

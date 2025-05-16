@@ -40,6 +40,7 @@ export default function FlipApp() {
   const [hasViewedStories, setHasViewedStories] = useState(false);
   // Данные выбранного заведения
   const [selectedPlace, setSelectedPlace] = useState<PlaceInfo | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
 
   // Эффект для скрытия splash-экрана через 3 секунды
   useEffect(() => {
@@ -141,6 +142,7 @@ return (
 
       {/* Кнопка профиля */}
       <button 
+        onClick={() => setShowProfile(true)}
         className="w-10 h-10 rounded-full bg-[#356ac9]/120 backdrop-blur-sm flex items-center justify-center 
         hover:bg-[#012044] transition-all shadow-md"
       >
@@ -150,6 +152,41 @@ return (
         </svg>
       </button>
     </div>
+
+      {/* Модальное окно профиля */}
+      {showProfile && (
+        <div className="fixed inset-0 bg-black/50 z-[1001] flex items-end">
+          <div className="bg-white w-full rounded-t-2xl p-4 animate-slide-up">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Профиль</h2>
+              <button 
+                onClick={() => setShowProfile(false)}
+                className="text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Содержимое профиля */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 rounded-full bg-[#356ac9] flex items-center justify-center text-white text-2xl font-bold">
+                ИИ
+              </div>
+              <div>
+                <h3 className="font-bold">Илья Кругляк</h3>
+                <p className="text-gray-500">+7 (123) 456-78-90</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <button className="w-full text-left py-3">Мои заказы</button>
+              <button className="w-full text-left py-3">Избранное</button>
+              <button className="w-full text-left py-3">Настройки</button>
+              <button className="w-full text-left py-3 text-red-500">Выйти</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Компонент карты с передачей обработчика выбора */}
       <MapComponent onPlaceSelect={handlePlaceSelect} />
