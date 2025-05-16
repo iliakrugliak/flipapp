@@ -120,22 +120,37 @@ if (showSplash) {
     );
   }
 
-  // Основной интерфейс с картой
-  return (
-    <div className="relative w-full h-screen">
-      {/* Кнопка "Показать списком" */}
-      <div className="absolute top-2 left-2 z-[1000]">
-        <Button className="bg-[#fed619] text-[#012044]">
-          <MapPin className="mr-2" /> Показать списком
-        </Button>
-      </div>
+// Основной интерфейс с картой
+return (
+  <div className="relative w-full h-screen">
+    {/* Кнопки управления в правом верхнем углу */}
+    <div className="absolute top-4 right-4 z-[1000] flex space-x-3">
+      {/* Кнопка списка */}
+      <button 
+        className="w-10 h-10 rounded-full bg-[#356ac9]/120 backdrop-blur-sm flex items-center justify-center 
+        hover:bg-[#012044] transition-all shadow-md"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+      </button>
 
       {/* Кнопка профиля */}
-      <div className="absolute top-2 right-2 z-[1000]">
-        <Button className="bg-[#012044] text-white">
-          <User className="mr-2" /> Профиль
-        </Button>
-      </div>
+      <button 
+        className="w-10 h-10 rounded-full bg-[#356ac9]/120 backdrop-blur-sm flex items-center justify-center 
+        hover:bg-[#012044] transition-all shadow-md"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </button>
+    </div>
 
       {/* Компонент карты с передачей обработчика выбора */}
       <MapComponent onPlaceSelect={handlePlaceSelect} />

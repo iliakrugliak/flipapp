@@ -131,3 +131,16 @@
 .leaflet-control-zoom {
   display: none !important;
 }
+
+.marker-with-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .marker-with-label span {
+    font-weight: 600; /* Более жирный шрифт на iOS */
+    letter-spacing: -0.2px; /* Чуть компактнее */
+  }
+}

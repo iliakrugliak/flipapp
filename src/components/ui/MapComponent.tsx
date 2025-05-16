@@ -21,7 +21,6 @@ interface MapComponentProps {
 
 export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,29 +36,37 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
         maxZoom: 19,
       }).addTo(map);
 
-      // Создаем круглый маркер
-      const createMarkerIcon = (size: number, color = "#356ac9") => {
-        return L.divIcon({
-          className: 'custom-marker',
-          html: `
+      // Создаем элемент метки с подписью
+      const markerWithLabel = L.divIcon({
+        className: 'marker-with-label',
+        html: `
+          <div style="display: flex; align-items: center;">
             <div style="
-              width: ${size}px;
-              height: ${size}px;
-              background: ${color};
+              width: 24px;
+              height: 24px;
+              background: #356ac9;
               border-radius: 50%;
               border: 2px solid white;
               box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-              transition: all 0.2s ease-out;
             "></div>
-          `,
-          iconSize: [size, size],
-          iconAnchor: [size/2, size/2]
-        });
-      };
+            <span style="
+              margin-left: 8px;
+              color: #356ac9;
+              font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+              font-size: 13px;
+              font-weight: 500;
+            ">
+              ${PLACE_INFO.name}
+            </span>
+          </div>
+        `,
+        iconSize: [120, 24], // Ширина с учетом подписи
+        iconAnchor: [12, 12] // Центр круга
+      });
 
-      // Создаем маркер
+      // Создаем маркер с подписью
       const marker = L.marker(VID_COFFEE_COORDS, {
-        icon: createMarkerIcon(24),
+        icon: markerWithLabel,
         interactive: true,
       }).addTo(map);
 
@@ -68,10 +75,6 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
       });
 
       mapRef.current = map;
-      markerRef.current = marker;
-
-      // Дополнительный стиль для приглушенных цветов
-      mapContainerRef.current.style.filter = 'saturate(1.05) brightness(1.05)';
     }
 
     return () => {
