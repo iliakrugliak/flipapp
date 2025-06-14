@@ -1,45 +1,63 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-const VID_COFFEE_COORDS: [number, number] = [59.964480, 30.296195];
-const INITIAL_MAP_CENTER: [number, number] = [59.96, 30.30];
-
-const PLACE_INFO = {
-  name: "Vid Coffee",
-  hours: "Ежедневно с 08:00 до 20:00",
-  offer: "Миндальное печенье",
-  quantity: 3,
-  price: 120,
-};
+// components/ui/MapComponent.tsx
+'use client'
+import { useEffect, useRef } from "react"
+import L from "leaflet"
+import "leaflet/dist/leaflet.css"
+import { useVenues } from '@/app/context/VenuesContext'
 
 interface MapComponentProps {
-  onPlaceSelect: (place: typeof PLACE_INFO) => void;
+  onPlaceSelect: (place: {
+    name: string
+    hours: string
+    offer: string
+    quantity: number
+    price: number
+  }) => void
 }
 
 export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
-  const mapRef = useRef<L.Map | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
+  const markersRef = useRef<L.Marker[]>([])
+  const { venues } = useVenues()
 
   useEffect(() => {
     if (!mapRef.current && mapContainerRef.current) {
+      // Инициализация карты
       const map = L.map(mapContainerRef.current, {
-        center: INITIAL_MAP_CENTER,
+        center: [59.96, 30.30],
         zoom: 13,
         zoomControl: false,
-      });
+      })
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         maxZoom: 19,
-      }).addTo(map);
+      }).addTo(map)
 
+      mapRef.current = map
+    }
+
+    return () => {
+      // Очистка при размонтировании
+      markersRef.current.forEach(marker => marker.remove())
+      markersRef.current = []
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!mapRef.current) return
+
+    // Очищаем предыдущие маркеры
+    markersRef.current.forEach(marker => marker.remove())
+    markersRef.current = []
+
+    // Добавляем новые маркеры
+    venues.forEach(venue => {
       const markerWithLabel = L.divIcon({
         className: 'marker-with-label',
         html: `
-          <div style="display: flex; align-items: center;">
+          <div style="display: flex; align-items: center; pointer-events: none;">
             <div style="
               width: 24px;
               height: 24px;
@@ -55,35 +73,41 @@ export default function MapComponent({ onPlaceSelect }: MapComponentProps) {
               font-size: 13px;
               font-weight: 700;
             ">
-              ${PLACE_INFO.name}
+              ${venue.name}
             </span>
           </div>
         `,
         iconSize: [120, 24],
         iconAnchor: [12, 12]
-      });
+      })
 
-      const marker = L.marker(VID_COFFEE_COORDS, {
+      const marker = L.marker(venue.coordinates, {
         icon: markerWithLabel,
         interactive: true,
-      }).addTo(map);
+      }).addTo(mapRef.current!)
 
       marker.on("click", (e) => {
-        e.originalEvent.stopPropagation();
-        onPlaceSelect(PLACE_INFO);
-      });
+        e.originalEvent.preventDefault()
+        e.originalEvent.stopPropagation()
+        
+        const offer = venue.menuItems[0] || {
+          name: 'Нет предложений',
+          price: 0,
+          quantity: 0
+        }
 
-      mapRef.current = map;
-    }
+        onPlaceSelect({
+          name: venue.name,
+          hours: venue.hours,
+          offer: offer.name,
+          quantity: offer.quantity,
+          price: offer.price
+        })
+      })
 
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      markersRef.current.push(marker)
+    })
+  }, [venues, onPlaceSelect])
 
-  return <div ref={mapContainerRef} className="w-full h-full bg-[#d6e7ff]" />;
+  return <div ref={mapContainerRef} className="w-full h-full bg-[#d6e7ff]" />
 }

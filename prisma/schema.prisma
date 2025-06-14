@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  login    String @unique
+  password String  // Храните только хеши!
+  role     String @default("admin")
+}
+
+model Venue {
+  id          String    @id @default(uuid())
+  name        String
+  login       String    @unique
+  password    String    // Храним только хеш!
+  address     String
+  phone       String
+  coordinates Float[]
+  menuItems   MenuItem[]
+  createdAt   DateTime  @default(now())
+}
+
+model MenuItem {
+  id        String   @id @default(uuid())
+  name      String
+  price     Float
+  quantity  Int
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  venueId   String
+}

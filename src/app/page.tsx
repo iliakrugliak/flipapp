@@ -1,3 +1,5 @@
+//scr/app/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -156,9 +158,15 @@ export default function FlipApp() {
   };
 
   // Обработчик выбора заведения (передаётся в MapComponent)
-  const handlePlaceSelect = (place: PlaceInfo) => {
-    setSelectedPlace(place);
-  };
+const handlePlaceSelect = (place: {
+  name: string
+  hours: string
+  offer: string
+  quantity: number
+  price: number
+}) => {
+  setSelectedPlace(place)
+}
 
   // Отображение модального окна профиля
   const renderProfileModal = () => {

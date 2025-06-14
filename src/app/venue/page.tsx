@@ -1,69 +1,181 @@
-// app/venue/profile/page.tsx
 'use client'
-import { useState } from 'react'
+
+import { useState, useEffect } from 'react'
+import { useVenues } from '@/app/context/VenuesContext'
+import { useRouter } from 'next/navigation'
+import AuthGuard from '@/components/AuthGuard'
 
 export default function VenueProfile() {
-  // Состояние для данных заведения
-  const [venueData, setVenueData] = useState({
-    name: 'Vid Coffee',
-    address: 'ул. Примерная, 123',
-    phone: '+7 999 123-45-67',
-    menuItems: [
-      { id: 1, name: 'Капучино', price: 250, quantity: 10 },
-      { id: 2, name: 'Латте', price: 280, quantity: 8 }
-    ]
+  const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const { venues, updateVenue } = useVenues()
+  const venueData = venues[0]
+
+  const [editMode, setEditMode] = useState(false)
+  const [venueInfo, setVenueInfo] = useState({
+    name: venueData.name,
+    address: venueData.address,
+    phone: venueData.phone,
+    hours: venueData.hours,
+    coordinates: venueData.coordinates
   })
 
-  // Состояние для новой позиции меню
   const [newItem, setNewItem] = useState({
     name: '',
     price: '',
     quantity: ''
   })
 
-  // Добавление новой позиции
-  const addMenuItem = () => {
+  // Авторизация
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/check')
+        if (!res.ok) router.push('/venue/login')
+        else setIsAuthenticated(true)
+      } catch {
+        router.push('/venue/login')
+      }
+    }
+    checkAuth()
+  }, [router])
+
+  const saveToServer = async (data: any) => {
+    await fetch('/api/venues', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+  }
+
+  const saveVenueInfo = async () => {
+    const updatedVenue = {
+      ...venueData,
+      ...venueInfo,
+      coordinates: [
+        Number(venueInfo.coordinates[0]),
+        Number(venueInfo.coordinates[1])
+      ] as [number, number]
+    }
+    
+
+    updateVenue(venueData.id, updatedVenue)
+    await saveToServer(updatedVenue)
+    setEditMode(false)
+  }
+
+  const addMenuItem = async () => {
     if (newItem.name && newItem.price && newItem.quantity) {
-      setVenueData({
-        ...venueData,
-        menuItems: [
-          ...venueData.menuItems,
-          {
-            id: Date.now(),
-            name: newItem.name,
-            price: Number(newItem.price),
-            quantity: Number(newItem.quantity)
-          }
-        ]
-      })
+      const updatedMenuItems = [
+        ...venueData.menuItems,
+        {
+          id: Date.now(),
+          name: newItem.name,
+          price: Number(newItem.price),
+          quantity: Number(newItem.quantity)
+        }
+      ]
+
+      const updatedVenue = { ...venueData, menuItems: updatedMenuItems }
+      updateVenue(venueData.id, updatedVenue)
+      await saveToServer(updatedVenue)
       setNewItem({ name: '', price: '', quantity: '' })
     }
   }
 
-  // Удаление позиции
-  const removeMenuItem = (id: number) => {
-    setVenueData({
-      ...venueData,
-      menuItems: venueData.menuItems.filter(item => item.id !== id)
-    })
+  const removeMenuItem = async (id: number) => {
+    const updatedMenuItems = venueData.menuItems.filter(item => item.id !== id)
+    const updatedVenue = { ...venueData, menuItems: updatedMenuItems }
+
+    updateVenue(venueData.id, updatedVenue)
+    await saveToServer(updatedVenue)
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Проверка авторизации...</p>
+      </div>
+    )
   }
 
   return (
     <div className="max-w-md mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Профиль заведения</h1>
-      
-      {/* Основная информация */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Профиль заведения</h1>
+        <button
+          onClick={() => editMode ? saveVenueInfo() : setEditMode(true)}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          {editMode ? 'Сохранить' : 'Редактировать'}
+        </button>
+      </div>
+
+      {/* Инфо о заведении */}
       <div className="mb-8 p-4 bg-gray-100 rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">{venueData.name}</h2>
-        <p className="mb-2">Адрес: {venueData.address}</p>
-        <p>Телефон: {venueData.phone}</p>
+        {editMode ? (
+          <div className="space-y-3">
+            <input
+              value={venueInfo.name}
+              onChange={(e) => setVenueInfo({...venueInfo, name: e.target.value})}
+              className="w-full p-2 border rounded"
+            />
+            <input
+              value={venueInfo.address}
+              onChange={(e) => setVenueInfo({...venueInfo, address: e.target.value})}
+              className="w-full p-2 border rounded"
+            />
+            <input
+              value={venueInfo.phone}
+              onChange={(e) => setVenueInfo({...venueInfo, phone: e.target.value})}
+              className="w-full p-2 border rounded"
+            />
+            <input
+              value={venueInfo.hours}
+              onChange={(e) => setVenueInfo({...venueInfo, hours: e.target.value})}
+              className="w-full p-2 border rounded"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                value={venueInfo.coordinates[0]}
+                onChange={(e) => setVenueInfo({
+                  ...venueInfo,
+                  coordinates: [Number(e.target.value), venueInfo.coordinates[1]]
+                })}
+                className="p-2 border rounded"
+                placeholder="Широта"
+              />
+              <input
+                type="number"
+                value={venueInfo.coordinates[1]}
+                onChange={(e) => setVenueInfo({
+                  ...venueInfo,
+                  coordinates: [venueInfo.coordinates[0], Number(e.target.value)]
+                })}
+                className="p-2 border rounded"
+                placeholder="Долгота"
+              />
+            </div>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-xl font-semibold mb-4">{venueData.name}</h2>
+            <p>Адрес: {venueData.address}</p>
+            <p>Телефон: {venueData.phone}</p>
+            <p>Часы работы: {venueData.hours}</p>
+            <p className="text-sm text-gray-500">
+              Координаты: {venueData.coordinates.join(', ')}
+            </p>
+          </>
+        )}
       </div>
 
       {/* Меню */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Ваше меню</h2>
         {venueData.menuItems.length === 0 ? (
-          <p className="text-gray-500">Пока нет позиций в меню</p>
+          <p className="text-gray-500">Пока нет позиций</p>
         ) : (
           <ul className="space-y-3">
             {venueData.menuItems.map(item => (
