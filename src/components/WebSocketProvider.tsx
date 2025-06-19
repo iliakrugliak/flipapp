@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { usePlaces } from '@/store/places-store';
 
 export function WebSocketProvider() {
-  const updatePlace = usePlaces(state => state.updatePlace);
+  const updatePlace = usePlaces((state: { updatePlace: any; }) => state.updatePlace);
 
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
