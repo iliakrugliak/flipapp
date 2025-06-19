@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { PlaceInfo } from '@/types/place';
 
 type PlacesStore = {
   places: PlaceInfo[];
