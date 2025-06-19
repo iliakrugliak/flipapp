@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import VenueProfile from '@/app/components/VenueProfile'
+import VenueProfile from '@/components/VenueProfile'
 
 export default function VenueDashboard({ params }: { params: { id: string } }) {
   const [venue, setVenue] = useState(null)
